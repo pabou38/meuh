@@ -17,41 +17,53 @@ salut=\
 {0:"bonjour pablo",\
  1:"salut pablo",\
  2:"saa va pablo",\
- 3:"elo pablo",\
- 4:"coucou pablo",\
- 5:"yo pablo", \
- 6:"bisou pablo"
+ 3:"helo pablo",\
+ 4:"coucou pablo"
 }
 
-mpc = [ "mpc play 1","mpc play 2","mpc play 3","mpc play 4","mpc stop" ]
+salut_num=4
 
+mpc = [ "mpc play 1","mpc play 3","mpc play 5","mpc play 7", "mpc play 9"]
+num_channel = 4   # start from 0
+channel = ["station spaciale", "controle de mission", "espace profond", "grouve", "annee soixante disse" ]
 
-pin_ultrason_trigger=11
-pin_ultrason_echo=8
-pin_halt=23
+pin_ultrason_trigger=23
+pin_ultrason_echo=24
+pin_halt=12
 
-pin_R_1=18
-pin_G_1=17
-pin_B_1=22
+led_L_R=19
+led_L_G=26
+led_L_B=13
+led_R_R=17
+led_R_G=22
+led_R_B=27
 
-pin_R_2=26
-pin_G_2=13
-pin_B_2=5
+him=1
+her=2
 
 GPIO.setmode(GPIO.BCM)
 GPIO.setup(pin_halt,GPIO.IN,pull_up_down=GPIO.PUD_UP)
 GPIO.setup(pin_ultrason_trigger, GPIO.OUT, initial=GPIO.LOW)
 GPIO.setup(pin_ultrason_echo,GPIO.IN)
 
-GPIO.setup(pin_R_1, GPIO.OUT, initial=GPIO.LOW)
-GPIO.setup(pin_R_2, GPIO.OUT, initial=GPIO.LOW)
-GPIO.setup(pin_B_1, GPIO.OUT, initial=GPIO.LOW)
-GPIO.setup(pin_B_2, GPIO.OUT, initial=GPIO.LOW)
-GPIO.setup(pin_G_1, GPIO.OUT, initial=GPIO.LOW)
-GPIO.setup(pin_G_2, GPIO.OUT, initial=GPIO.LOW)
+GPIO.setup(led_L_R, GPIO.OUT, initial=GPIO.LOW)
+GPIO.setup(led_L_G, GPIO.OUT, initial=GPIO.LOW)
+GPIO.setup(led_L_B, GPIO.OUT, initial=GPIO.LOW)
+GPIO.setup(led_R_R, GPIO.OUT, initial=GPIO.LOW)
+GPIO.setup(led_R_G, GPIO.OUT, initial=GPIO.LOW)
+GPIO.setup(led_R_B, GPIO.OUT, initial=GPIO.LOW)
 
+
+# espeakl mbrola  voice1 male voice2 female
 voice1 = "espeak -v mb/mb-fr1 -q --pho \"%s\"  | mbrola -t 1.7 -f 0.7  -e -C \"n n2\" /usr/share/mbrola/voices/fr3 - -.au | aplay"
 voice2 = "espeak -v mb/mb-fr4 -q --pho \"%s\"  | mbrola -t 1.7 -f 0.7  -e -C \"n n2\" /usr/share/mbrola/voices/fr4 - -.au | aplay"
+
+# pico TTS android
+def pico(text):
+	s="pico2wave -l fr-FR -w /home/pi/ramdisk/a.wav \"" + text +"\""
+        print s
+        os.system(s)
+        os.system("aplay /home/pi/ramdisk/a.wav")
 
 def pulse():
 	GPIO.output(pin_ultrason_trigger, False)
@@ -63,7 +75,6 @@ def pulse():
 	start = time.time()
 	while GPIO.input(pin_ultrason_echo)==0:
 	  	start = time.time()
-
 	while GPIO.input(pin_ultrason_echo)==1:
   		stop = time.time()
 	elapsed = stop-start
@@ -81,79 +92,57 @@ def pablo_mp3(dir):
 	animal = animalmp3.split(".")[0]
 	print animal
 #	os.system(voice2 % animal )
-#use pico
-	s="pico2wave -l fr-FR -w /home/pi/ramdisk/a.wav \"" + animal +"\""
-	print s
-	os.system(s)
-	os.system("aplay /home/pi/ramdisk/a.wav")
+	pico(animal)
 
 def rand_led():
-	GPIO.output(pin_R_1, random.randint(0,1))
-	GPIO.output(pin_R_2, random.randint(0,1))
-	GPIO.output(pin_G_1, random.randint(0,1))
-	GPIO.output(pin_G_2, random.randint(0,1))
-	GPIO.output(pin_B_1, random.randint(0,1))
-	GPIO.output(pin_B_2, random.randint(0,1))
+	GPIO.output(led_R_R, random.randint(0,1))
+	GPIO.output(led_R_G, random.randint(0,1))
+	GPIO.output(led_R_B, random.randint(0,1))
+	GPIO.output(led_L_R, random.randint(0,1))
+	GPIO.output(led_L_G, random.randint(0,1))
+	GPIO.output(led_L_B, random.randint(0,1))
 
-def blink_led(led,delay):
-	GPIO.output(led, GPIO.HIGH)
-	time.sleep(delay)
-	GPIO.output(led, GPIO.LOW)
-	
 def low_led(led):
 	GPIO.output(led, GPIO.LOW)
 
+def high_led(led):
+	GPIO.output(led, GPIO.HIGH)
+
+def blink_led(led,delay):
+	high_led(led)
+	time.sleep(delay)
+	low_led(led)	
+
 def low_all_led():
-	low_led(pin_R_1)
-	low_led(pin_R_2)
-	low_led(pin_G_1)
-	low_led(pin_G_2)
-	low_led(pin_B_1)
-	low_led(pin_B_2)
+	low_led(led_R_R)
+	low_led(led_R_G)
+	low_led(led_R_B)
+	low_led(led_L_R)
+	low_led(led_L_G)
+	low_led(led_L_B)
 
 def chenillard (delay,cycle):
 	for i  in range(cycle):
 		low_all_led()
-		GPIO.output(pin_R_1, GPIO.HIGH)
-		time.sleep(delay)
-		low_led(pin_R_1)
-		GPIO.output(pin_R_2, GPIO.HIGH)
-		time.sleep(delay)
-		low_led(pin_R_2)
-
-		GPIO.output(pin_G_1, GPIO.HIGH)
-		time.sleep(delay)
-		low_led(pin_G_1)
-		GPIO.output(pin_G_2, GPIO.HIGH)
-		time.sleep(delay)
-		low_led(pin_G_2)
-
-		GPIO.output(pin_B_1, GPIO.HIGH)
-		time.sleep(delay)
-		low_led(pin_B_1)
-		GPIO.output(pin_B_2, GPIO.HIGH)
-		time.sleep(delay)
-		low_led(pin_B_2)
+		blink_led(led_R_R,delay)
+		blink_led(led_R_G,delay)
+		blink_led(led_R_B,delay)
+		blink_led(led_L_R,delay)
+		blink_led(led_L_G,delay)
+		blink_led(led_L_R,delay)
 
 def do_halt(channel):
         GPIO.remove_event_detect(pin_halt)
         print "event detect will halt", channel
 	low_all_led()
-	GPIO.output(pin_R_2, GPIO.HIGH)
-	GPIO.output(pin_R_1, GPIO.HIGH)
-	s="pico2wave -l fr-FR -w /home/pi/ramdisk/a.wav \"au revoir pablo\" "
-	print s
-	os.system(s) 
-	os.system("aplay /home/pi/ramdisk/a.wav")
+	high_led(led_R_R)
+	high_led(led_L_R)
+	pico("au revoir pablo")
 #	os.system(voice2 % "au revoir pablo")
 	call (["sudo","halt"])
 
-
 #   ---------------  START ---------------------------------------
-
-
-os.system(mpc[4])
-
+os.system("mpc stop")
 random.seed()
 
 #ping = subprocess.check_output("ping -c 1 192.168.1.1", shell=True)
@@ -167,62 +156,58 @@ else:
 ping=os.system("ping -c1 8.8.8.8")
 print "ping:   ", ping
 if (ping == 0):
-	os.system(voice2 % "internet OK")
+	pico("internette OK")
 else:
-	os.system(voice2 % "internet PAS OK")
+	pico("internette pas OK")
 
 for i in range(20):
 	rand_led()
 	time.sleep(0.05)
 
-#epeak mbrola
-#call (["/home/pi/pablo/tts/voice1.sh",salut[random.randint(0,6)]])
-
-s="pico2wave -l fr-FR -w /home/pi/ramdisk/a.wav \"" + salut[random.randint(0,6)]+"\""
-print s
-os.system(s)
-os.system("aplay /home/pi/ramdisk/a.wav")
-
+pico(salut[random.randint(0,salut_num)])
 
 #if (random.randint(0,1) == 0):
 #	os.system(voice1 % salut[random.randint(0,6)])
 #else:
 #	os.system(voice2 % salut[random.randint(0,6)])
+#call (["/home/pi/pablo/tts/voice1.sh",salut[random.randint(0,6)]])
 
 last_distance=0
-cycle_count=0
 mpc_channel=0
-
 GPIO.add_event_detect(pin_halt, GPIO.FALLING, callback=do_halt, bouncetime=1000)
+
+periodic=0  # periodic message 
 
 try:
 	while 1:
-		cycle_count=cycle_count+1
-		blink_led(pin_G_1,0.03)
-		blink_led(pin_G_2,0.03)
+		periodic +=1
+		blink_led(led_L_G,0.03)
+		blink_led(led_R_G,0.03)
 		current_distance = pulse ()
-		print "curent and last distance cm:  ", current_distance, last_distance
+		print "curent and last distance in cm:  ", current_distance, last_distance
 
 #		if (abs(current_distance - last_distance) > 20):
 		if (current_distance < 5):
-
 			print "MPC" , mpc_channel
+			os.system(voice1 % "radio internet")
+			pico(channel[mpc_channel])
 			os.system(mpc[mpc_channel])
-			if (mpc_channel == 4):
+			if (mpc_channel == num_channel):
 				mpc_channel=0
 			else:
-				mpc_channel = mpc_channel+1
+				mpc_channel +=1
 					
 		if (current_distance > 10 and current_distance < 30):
 			chenillard(0.1,2)
 			pablo_mp3("/home/pi/pablo/mp3/")
 		
 		if (current_distance > 30 and current_distance < 50):
-			os.system(mpc[4])
+			os.system(voice1 % "plus de radio internet ")
+			os.system("mpc stop")
 			mpc_channel=0
 
-		if (cycle_count==30):
-			cycle_count=0
+		if (periodic==30):
+			periodic=0
 			if (mpc_channel==0):
 				if (random.randint(0,1) == 0):
 					os.system(voice1 % "on continue")
@@ -236,7 +221,7 @@ try:
 
 except KeyboardInterrupt:
 	print "/nPablo Cleanup"
-	os.system(mpc[4])
+	os.system("mpc stop")
 	GPIO.cleanup()
 
 exit(0)
